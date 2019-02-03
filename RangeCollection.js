@@ -7,6 +7,27 @@
  * NOTE: Feel free to add any extra member variables/functions you like.
  */
 class RangeCollection {
+
+  /**
+   * Creates all internal props. 
+   */
+  constructor() {    
+    this.rangesInclude = []; 
+    this.rangesExclude = []; 
+
+
+    this.rangesInclude  = [ [1, 5], [10, 20], [17, 21] ]; // Test
+    this.rangesExclude = [ [13, 17] ]; // Test
+}
+
+  /**
+   * Returns current set of ranges as flat (single dimension) array
+   */
+  getFlatRanges () {
+    // return this.rangesInclude.flat();
+    return this.rangesInclude.reduce((acc, val) => acc.concat(val), []);
+  }
+
   /**
    * Adds a range to the collection
    * @param {Array<number>} range - Array of two integers that specify beginning and end of range.
@@ -27,7 +48,11 @@ class RangeCollection {
    * Prints out the list of ranges in the range collection
    */
   print() {
-    // TODO: implement this
+    const flatRanges = this.getFlatRanges();
+    let output = '';
+    for (let i = 0; i < flatRanges.length; i += 2)
+      output += `[${flatRanges[i]}, ${flatRanges[i+1]}) `; // "[a, b)"
+    console.log(output);
   }
 }
 
