@@ -1,4 +1,4 @@
-# Restaurants
+# Range Collection
 This is a "test task" for position of Web developer.
 
 [On-line Demo](https://karpolan.com/demos/js-range-collection/)
