@@ -1,0 +1,30 @@
+{
+  "name": "js-range-collection",
+  "version": "0.0.7",
+  "description": "List of restaurants with sorting and searching using React JS",
+  "keywords": [
+    "collection",
+    "test",
+    "demo",
+    "sample",
+    "javascript"
+  ],
+  "author": "Anton Karpenko <i@karpolan.com> (https://karpolan.com)",
+  "license": "MIT",
+  "homepage": "https://karpolan.com/demos/js-range-collection",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/karpolan/js-range-collection"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^24.0.0"
+  },
+  "scripts": {
+    "start": "node RangeCollection.js",
+    "test": "jest"
+  },
+  "jest": {
+    "testRegex": ".*\\.test\\.js$"
+  }
+}
