@@ -1,7 +1,7 @@
 {
   "name": "js-range-collection",
-  "version": "0.0.7",
-  "description": "List of restaurants with sorting and searching using React JS",
+  "version": "0.1.9",
+  "description": "Collection of numeric ranges",
   "keywords": [
     "collection",
     "test",
