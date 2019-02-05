@@ -1,21 +1,24 @@
-const RangeFlatCollection = require('./RangeCollection');
-// import { RangeFlatCollection } from './RangeCollection';
+const RangeCollection = require('./RangeCollectionOld');
+// import { RangeCollection } from './RangeCollectionOld';
 
-describe('RangeFlatCollection Tests', () => {
-	const rc = new RangeFlatCollection();
+describe('RangeCollection Tests', () => {
+	const rc = new RangeCollection();
 
 	it('adds range [1, 5]', () => {
 		rc.add([1, 5]);
+		//expect(rc.rangesInclude).toEqual([[1, 5]]);
 		expect( rc.print() ).toEqual('[1, 5)');
 	})
 
 	it('adds range [10, 20]', () => {
 		rc.add([10, 20]);
+		//expect(rc.rangesInclude).toEqual([[1, 5], [10, 20]])
 		expect( rc.print() ).toEqual('[1, 5) [10, 20)');
 	})
 
 	it('adds range [20, 20]', () => {
 		rc.add([20, 20]);
+		//expect(rc.rangesInclude).toEqual([1, 5], [10, 20], [20, 20])
 		expect( rc.print() ).toEqual('[1, 5) [10, 20)');
 	})
 

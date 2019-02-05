@@ -2,132 +2,171 @@
 // A pair of integers define a range, for example: [1, 5). This range includes integers: 1, 2, 3, and 4.
 // A range collection is an aggregate of these ranges: [1, 5), [10, 11), [100, 201)
 
+// import { rangeMerge, rangeCut, rangeSplit } from './utils';
+const utils = require('./utils');
 
-/**
- * Utility doesn't allow to add the same Range twice.
- * @param {Array<number>} arr - [a1, a2, b1, b2...] array of ranges.
- * @param {Array<number>} range - [b1, b2] array with new range to add.
- */
-const addUniqueRange = (arr, range) => {
-  for (let i = 0; i < arr.length - 1; i += 2) {
-    if ((arr[i] === range[0]) && (arr[i + 1] === range[1])) return arr; // this range is already added 
-  }
-  arr.push(range[0], range[1]);
-  return arr;
-}
+const OPERATION_ADD     = 1; 
+const OPERATION_REMOVE  = 2; 
+
+const ACTION_NONE       = 0; 
+const ACTION_ADD        = 1; 
+const ACTION_INSIDE     = 2; 
+const ACTION_MERGE      = 3; 
+const ACTION_DELETE     = 4; 
+const ACTION_CUT        = 5; 
+const ACTION_SPLIT      = 6; 
 
 /**
  * RangeCollection class
- * NOTE: Feel free to add any extra member variables/functions you like.
+ * Second variant of Range Collection with single array as a storage
  */
 class RangeCollection {
-
   /**
    * Creates internal properties
    */
   constructor() {
-    this.rangesInclude = [];
-    this.rangesExclude = [];
+    this.ranges = [];
   }
 
   /**
-   * Returns current set of ranges as flat (single dimension) array.
-   * "Combined" ranges flat array is built form 'this.rangesInclude' property.
-   * If 'this.rangesExclude' property is not empty, we filter "Combined" ranges as follow:
-   * 1. "Excluded" ranges flat array is built in the same way as "Combined" one.
-   * 2. We transform every "Combined" range by all "Excluded" ranges at once. 
-   * 3. All transformed ranges are stored into the "Filtred" array.
-   * @return {Array<number>} - [a1, a2, b1, b2...] "Combined" or "Filtred" ranges as flat array.
+   * Returns the "adding action" depending on disposition of given Ranges
+   * @param {Array<number>} a - Range A as array of 2 numbers, a[0] <= a[1]
+   * @param {Array<number>} b - Range B as array of 2 numbers, b[0] <= b[1]
+   * @returns {number} - One of ACTION_NONE, ACTION_ADD, ACTION_INSIDE, ACTION_MERGE
    */
-  getFlatRanges() {
-    const combined = [], excluded = [], filtred = []; 
-    let first = undefined, last = undefined;
+   getActionAdd(a, b) {
+    // Range B after A
+    if (a[1] < b[0]) return ACTION_ADD;
  
-    // Get flat array of "Combined" ranges
-    this.rangesInclude.sort((a, b) => a[0] - b[0]); // Sort ASC
-    first = this.rangesInclude[0][0];
-    last  = this.rangesInclude[0][1];
-    for (let i = 0; i < this.rangesInclude.length - 1; i++) {
-      const a = this.rangesInclude[i];
-      const b = this.rangesInclude[i + 1];
-      if (last < b[0]) {
-        // No intersection
-        combined.push(first, last); // Save previous range
-        first = b[0];
-        last = b[1];
-      } else {
-        // Ranges overlap
-        if (first === undefined) first = a[0];
-        if (last === undefined) last = a[1];
-        last = Math.max(a[1], last);
-        last = Math.max(b[1], last);
-      }
-    } // for
-    combined.push(first, last); // Save latest range
-
-    // If there are no "Excluded" ranges return "Combined" ranges as is
-    if (this.rangesExclude.length < 1) return combined;
-
-    // Get "Excluded" ranges as flat array
-    this.rangesExclude.sort((a, b) => a[0] - b[0]); // Sort ASC
-    first = this.rangesExclude[0][0];
-    last  = this.rangesExclude[0][1];
-    for (let i = 0; i < this.rangesExclude.length - 1; i++) {
-      const a = this.rangesExclude[i];
-      const b = this.rangesExclude[i + 1];
-      if (last < b[0]) {
-        // No intersection
-        excluded.push(first, last); // Save previous range
-        first = b[0];
-        last = b[1];
-      } else {
-        // Ranges overlap
-        if (first === undefined) first = a[0];
-        if (last === undefined) last = a[1];
-        last = Math.max(a[1], last);
-        last = Math.max(b[1], last);
-      }
-    } // for
-    excluded.push(first, last); // Save latest range
+    // Range B before A. Skip now, we will compare it later
+    if (b[1] < a[0]) return ACTION_NONE;
   
-    // Filter every "Combined" range (a) by all "Excluded" ranges (b)  
-    for (let i = 0; i < combined.length - 1; i += 2) {
-      let a = [combined[i], combined[i + 1]];
+    // Range A inside B
+    if (b[0] <= a[0] && a[1] <= b[1]) return ACTION_INSIDE;
 
-      for (let j = 0; j < excluded.length - 1; j += 2) {
-        const b = [excluded[j], excluded[j + 1]];
+    // Partialy overlap
+    return ACTION_MERGE;
+ }
 
-        if ((a[1] < b[0]) || (a[0] > b[1])) {
-          // No intersection - Do nothing
-        } else 
-        if ((a[0] < b[0]) && (b[1] < a[1])) {
-          // Range is splited
-          addUniqueRange(filtred, [a[0], b[0]]); // Save "left" part 
-          a[0] = b[1]; // Continue with "right" part only
-        } else 
-        if ((b[0] <= a[1]) && (a[1] <= b[1])) {
-          // Cut at the end
-          a[1] = b[0];
-        } else 
-        if ((b[0] <= a[0]) && (a[0] <= b[1]))  {
-          // Cut at the begin
-          a[0] = b[1];
+  /**
+   * Returns the "removing action" depending on disposition of given Ranges
+   * @param {Array<number>} a - Range A as array of 2 numbers, a[0] <= a[1]
+   * @param {Array<number>} b - Range B as array of 2 numbers, b[0] <= b[1]
+   * @returns {number} - One of ACTION_NONE, ACTION_DELETE, ACTION_CUT, ACTION_SPLIT 
+   */
+  getActionRemove(a, b) {
+    // Range A inside B
+    if (b[0] < a[0] && a[1] < b[1]) return ACTION_SPLIT;
+
+    // Range B inside A
+    if (a[0] <= b[0] && b[1] <= a[1]) return ACTION_DELETE;
+  
+    // Cut at End
+    if (a[0] <= b[0] && a[1] <= b[1]) return ACTION_CUT;
+  
+    // Cut at Begin
+    if (b[0] <= a[0] && a[0] <= b[1] && b[1] <= a[1]) return ACTION_CUT;
+  
+    // Not overlaped
+    return ACTION_NONE;
+  }
+
+  /**
+   * Mutates the internal 'this.ranges' array by perforing specific Operation with given Range. 
+   * @param {number} operation - One of OPERATION_ADD, OPERATION_REMOVE
+   * @param {Array<number>} range - Range as array of 2 numbers, range[0] <= range[1]
+   */
+  mutateRanges(operation, range) {
+    let result = [];
+    let finish = false; // Used in reduce functions
+
+    const _reduceOnAdd = (acc, value, index, arr) => {
+      if (finish) return [...acc, value];
+      //if (!Array.isArray(acc)) acc = [acc]; // fix to use ...acc in spreads
+      let a = range;
+      let b = value;
+      //console.log('switch',this.getActionAdd(a, b), a, b);
+      switch (this.getActionAdd(a, b)) {
+        case ACTION_NONE: {
+          if (index === arr.length - 1) {
+            // We reach the last element
+            finish = true;
+            return [...acc, b, a]; // Add range A to the end
+          }
+          return [...acc, b]; // Just add B and follow to the next element
         }
-      } // for j
+        case ACTION_ADD: {
+          finish = true;
+          return [...acc, a, b]; // Add both ranges
+        }
+        case ACTION_INSIDE: {
+          finish = true;
+          return [...acc, b]; // Range A inside B, add only B
+        }
+        case ACTION_MERGE: {
+          finish = true;
+          return [...acc, utils.rangeMerge(a, b)] // Add merged ranges
+        }
+        /* default: {
+          // Todo: Do we need this?
+          console.warn('_reduceOnAdd() default case')
+          finish = true;
+          return [...acc, b];
+        } */
+      } 
+    } // _reduceOnAdd()
 
-      addUniqueRange(filtred, [a[0], a[1]]);  // Save the "filterd" part
-    } // for i   
+    const _reduceOnRemove = (acc, value, index, arr) => {
+      if (finish) return [...acc, value];
+      //if (!Array.isArray(acc)) acc = [acc]; // fix to use ...acc in spreads
+      let a = range;
+      let b = value;
+      //console.log('switch',this.getActionRemove(a, b), a, b);
+      switch (this.getActionRemove(a, b)) {
+        case ACTION_NONE: {
+          return [...acc, b]; // Just add B and follow to the next element
+        }
+        case ACTION_DELETE: {
+          return acc;
+        }
+        case ACTION_CUT: {
+          return [...acc, utils.rangeCut(a, b)];
+        }
+        case ACTION_SPLIT: {
+          return [...acc, ...utils.rangeSplit(a, b)]; // Note: spread for rangeSplit() is a must
+        }
+        /* default: {
+          // Todo: Do we need this?
+          console.warn('_reduceOnRemove() default case')
+          finish = true;
+          return [...acc, b];
+        } */
+      } 
+    } // _reduceOnRemove()
+
+    // Reduce Ranges array depending on Operation
+    if (operation === OPERATION_ADD)
+      result = this.ranges.reduce(_reduceOnAdd, []);
+    else
+      result = this.ranges.reduce(_reduceOnRemove, []);
   
-    return filtred;
-  } // getFlatRanges()
+    return result;
+  } // mutateRanges()
 
   /**
    * Adds a range to the collection
    * @param {Array<number>} range - Array of two integers that specify beginning and end of range.
    */
   add(range) {
-    this.rangesInclude.push(range);
-    return this.rangesInclude; // Could be useful
+    let a = range;
+    if (a[1] < a[0]) a.reverse();
+
+    if (this.ranges.length < 1)
+      this.ranges.push(a); // There are no other ranges, just add new one
+    else
+      this.ranges = this.mutateRanges(OPERATION_ADD, a);
+
+    return this.ranges; // Could be useful
   }
 
   /**
@@ -135,20 +174,19 @@ class RangeCollection {
    * @param {Array<number>} range - Array of two integers that specify beginning and end of range.
    */
   remove(range) {
-    this.rangesExclude.push(range);
-    return this.rangesExclude; // Could be useful
+    let a = range;
+    if (a[1] < a[0]) a.reverse();
+
+    this.ranges = this.mutateRanges(OPERATION_REMOVE, a);
+    return this.ranges; // Could be useful
   }
 
   /**
    * Prints out the list of ranges in the range collection
    */
   print() {
-    const flatRanges = this.getFlatRanges();
     let output = '';
-    for (let i = 0; i < flatRanges.length; i += 2) {
-      output += `[${flatRanges[i]}, ${flatRanges[i + 1]}) `; // "[a, b) "
-    }
-    output = output.trim();
+    output = this.ranges.map(a => `[${a[0]}, ${a[1]})`).join(' ').trim();
     console.log(output);
     return output;
   }
@@ -165,6 +203,7 @@ const runExample = () => {
   rc.add([1, 5]);
   rc.print();
   // Should display: [1, 5)
+
 
   rc.add([10, 20]);
   rc.print();
@@ -185,7 +224,7 @@ const runExample = () => {
   rc.add([3, 8]);
   rc.print();
   // Should display: [1, 8) [10, 21)
- 
+
   rc.remove([10, 10]);
   rc.print();
   // Should display: [1, 8) [10, 21)
@@ -201,6 +240,15 @@ const runExample = () => {
   rc.remove([3, 19]);
   rc.print();
   // Should display: [1, 3) [19, 21)
+
+  rc.add([10, 20]);
+  rc.print();
+  // Should display: [1, 3) [10, 21)
+
+  rc.add([0, 100]);
+  rc.print();
+  // Should display: [0, 100);
+
 }
 runExample();
 

@@ -1,6 +1,6 @@
 {
   "name": "js-range-collection",
-  "version": "0.1.9",
+  "version": "0.5.11",
   "description": "Collection of numeric ranges",
   "keywords": [
     "collection",
@@ -21,8 +21,12 @@
     "jest": "^24.0.0"
   },
   "scripts": {
-    "start": "node RangeCollection.js",
+    "start": "node RangeCollection2.js",
+    "start2": "node RangeFlatCollection.js",
     "test": "jest"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
   },
   "jest": {
     "testRegex": ".*\\.test\\.js$"
