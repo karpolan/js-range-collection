@@ -5,16 +5,16 @@
 // import { rangeMerge, rangeCut, rangeSplit } from './utils';
 const utils = require('./utils');
 
-const OPERATION_ADD     = 1; 
-const OPERATION_REMOVE  = 2; 
+const OPERATION_ADD = 1;
+const OPERATION_REMOVE = 2;
 
-const ACTION_NONE       = 0; 
-const ACTION_ADD        = 1; 
-const ACTION_INSIDE     = 2; 
-const ACTION_MERGE      = 3; 
-const ACTION_DELETE     = 4; 
-const ACTION_CUT        = 5; 
-const ACTION_SPLIT      = 6; 
+const ACTION_NONE = 0;
+const ACTION_ADD = 1;
+const ACTION_INSIDE = 2;
+const ACTION_MERGE = 3;
+const ACTION_DELETE = 4;
+const ACTION_CUT = 5;
+const ACTION_SPLIT = 6;
 
 /**
  * RangeCollection class
@@ -34,19 +34,19 @@ class RangeCollection {
    * @param {Array<number>} b - Range B as array of 2 numbers, b[0] <= b[1]
    * @returns {number} - One of ACTION_NONE, ACTION_ADD, ACTION_INSIDE, ACTION_MERGE
    */
-   getActionAdd(a, b) {
+  getActionAdd(a, b) {
     // Range B after A
     if (a[1] < b[0]) return ACTION_ADD;
- 
+
     // Range B before A. Skip now, we will compare it later
     if (b[1] < a[0]) return ACTION_NONE;
-  
+
     // Range A inside B
     if (b[0] <= a[0] && a[1] <= b[1]) return ACTION_INSIDE;
 
     // Partialy overlap
     return ACTION_MERGE;
- }
+  }
 
   /**
    * Returns the "removing action" depending on disposition of given Ranges
@@ -60,13 +60,13 @@ class RangeCollection {
 
     // Range B inside A
     if (a[0] <= b[0] && b[1] <= a[1]) return ACTION_DELETE;
-  
+
     // Cut at End
     if (a[0] <= b[0] && a[1] <= b[1]) return ACTION_CUT;
-  
+
     // Cut at Begin
     if (b[0] <= a[0] && a[0] <= b[1] && b[1] <= a[1]) return ACTION_CUT;
-  
+
     // Not overlaped
     return ACTION_NONE;
   }
@@ -113,7 +113,7 @@ class RangeCollection {
           finish = true;
           return [...acc, b];
         } */
-      } 
+      }
     } // _reduceOnAdd()
 
     const _reduceOnRemove = (acc, value, index, arr) => {
@@ -141,7 +141,7 @@ class RangeCollection {
           finish = true;
           return [...acc, b];
         } */
-      } 
+      }
     } // _reduceOnRemove()
 
     // Reduce Ranges array depending on Operation
@@ -149,7 +149,7 @@ class RangeCollection {
       result = this.ranges.reduce(_reduceOnAdd, []);
     else
       result = this.ranges.reduce(_reduceOnRemove, []);
-  
+
     return result;
   } // mutateRanges()
 

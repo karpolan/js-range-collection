@@ -5,8 +5,8 @@ const rangeMerge = (a, b) => {
   return [
     Math.min(a[0], b[0]), // most "left"
     Math.max(a[1], b[1])  // most "right"
-  ]; 
-}  
+  ];
+}
 
 /**
  * Cuts the one range by another 
@@ -16,17 +16,17 @@ const rangeCut = (a, b) => {
     a[0] <= b[0] ? a[1] : b[0],
     a[1] < b[1] ? b[1] : a[0]
   ];
-}  
+}
 
 /**
  * Splits one range by another
  */
 const rangeSplit = (a, b) => {
-  return[
+  return [
     [b[0], a[0]], // "left" part 
     [a[1], b[1]]  // "right" part
   ];
-}  
+}
 
 /**
  * Utility doesn't allow adding the same Range twice.
@@ -43,8 +43,8 @@ const addUniqueRange = (arr, range) => {
 
 
 module.exports = {
-	rangeMerge,
-	rangeCut,
-	rangeSplit,
-	addUniqueRange
+  rangeMerge,
+  rangeCut,
+  rangeSplit,
+  addUniqueRange
 }

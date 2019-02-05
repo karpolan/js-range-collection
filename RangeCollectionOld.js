@@ -29,13 +29,13 @@ class RangeCollection {
    * @return {Array<number>} - [a1, a2, b1, b2...] "Combined" or "Filtred" ranges as flat array.
    */
   getFlatRanges() {
-    const combined = [], excluded = [], filtred = []; 
+    const combined = [], excluded = [], filtred = [];
     let first = undefined, last = undefined;
- 
+
     // Get flat array of "Combined" ranges
     this.rangesInclude.sort((a, b) => a[0] - b[0]); // Sort ASC
     first = this.rangesInclude[0][0];
-    last  = this.rangesInclude[0][1];
+    last = this.rangesInclude[0][1];
     for (let i = 0; i < this.rangesInclude.length - 1; i++) {
       const a = this.rangesInclude[i];
       const b = this.rangesInclude[i + 1];
@@ -60,7 +60,7 @@ class RangeCollection {
     // Get "Excluded" ranges as flat array
     this.rangesExclude.sort((a, b) => a[0] - b[0]); // Sort ASC
     first = this.rangesExclude[0][0];
-    last  = this.rangesExclude[0][1];
+    last = this.rangesExclude[0][1];
     for (let i = 0; i < this.rangesExclude.length - 1; i++) {
       const a = this.rangesExclude[i];
       const b = this.rangesExclude[i + 1];
@@ -78,7 +78,7 @@ class RangeCollection {
       }
     } // for
     excluded.push(first, last); // Save latest range
-  
+
     // Filter every "Combined" range (a) by all "Excluded" ranges (b)  
     for (let i = 0; i < combined.length - 1; i += 2) {
       let a = [combined[i], combined[i + 1]];
@@ -88,31 +88,31 @@ class RangeCollection {
 
         if ((a[1] < b[0]) || (a[0] > b[1])) {
           // No intersection - Do nothing
-        } else 
-        if ((b[0] <= a[0]) && (a[1] <= b[1])) {
-          // Range A inside Range B
-          a[1] = a[0]; 
-          break; // The range is "eliminated"
-        } else 
-        if ((a[0] < b[0]) && (b[1] < a[1])) {
-          // Range is splited
-          utils.addUniqueRange(filtred, [a[0], b[0]]); // Save "left" part 
-          a[0] = b[1]; // Continue with "right" part only
-        } else 
-        if ((b[0] <= a[1]) && (a[1] <= b[1])) {
-          // Cut at the end
-          a[1] = b[0];
-        } else 
-        if ((b[0] <= a[0]) && (a[0] <= b[1]))  {
-          // Cut at the begin
-          a[0] = b[1];
-        }
+        } else
+          if ((b[0] <= a[0]) && (a[1] <= b[1])) {
+            // Range A inside Range B
+            a[1] = a[0];
+            break; // The range is "eliminated"
+          } else
+            if ((a[0] < b[0]) && (b[1] < a[1])) {
+              // Range is splited
+              utils.addUniqueRange(filtred, [a[0], b[0]]); // Save "left" part 
+              a[0] = b[1]; // Continue with "right" part only
+            } else
+              if ((b[0] <= a[1]) && (a[1] <= b[1])) {
+                // Cut at the end
+                a[1] = b[0];
+              } else
+                if ((b[0] <= a[0]) && (a[0] <= b[1])) {
+                  // Cut at the begin
+                  a[0] = b[1];
+                }
       } // for j
 
       if (a[0] !== a[1])
         utils.addUniqueRange(filtred, [a[0], a[1]]);  // Save the "filterd" part
     } // for i   
-  
+
     return filtred;
   } // getFlatRanges()
 
@@ -129,24 +129,24 @@ class RangeCollection {
       if ((a[1] < b[0]) || (b[1] < a[0])) {
         // No intersection
         return [...acc, b];
-      } else 
-      if ((b[0] <= a[0]) && (a[1] <= b[1])) {
-        // Range A inside Range B - split
-        return [...acc, utils.rangeSplit(a, b)];
-      } else 
-      if ((a[0] < b[0]) && (b[1] < a[1])) {
-        // Range B inside A - delete
-        return acc;
-      } else 
-      if ((b[0] <= a[0]) && (b[1] <= a[1])) {
-        // Cut at the end
-        return [...acc, [b[0], a[0]]];
-      } else 
-      if ((a[0] <= b[0]) && (a[1] <= b[1]))  {
-        // Cut at the begin
-        return [...acc, [a[1], b[1]]];
       } else
-        return [...acc, b]; // just continue
+        if ((b[0] <= a[0]) && (a[1] <= b[1])) {
+          // Range A inside Range B - split
+          return [...acc, utils.rangeSplit(a, b)];
+        } else
+          if ((a[0] < b[0]) && (b[1] < a[1])) {
+            // Range B inside A - delete
+            return acc;
+          } else
+            if ((b[0] <= a[0]) && (b[1] <= a[1])) {
+              // Cut at the end
+              return [...acc, [b[0], a[0]]];
+            } else
+              if ((a[0] <= b[0]) && (a[1] <= b[1])) {
+                // Cut at the begin
+                return [...acc, [a[1], b[1]]];
+              } else
+                return [...acc, b]; // just continue
     }, []);
   } // removeOvelapedRanges()
 
@@ -215,7 +215,7 @@ const runExample = () => {
   rc.add([3, 8]);
   rc.print();
   // Should display: [1, 8) [10, 21)
- 
+
   rc.remove([10, 10]);
   rc.print();
   // Should display: [1, 8) [10, 21)
