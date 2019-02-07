@@ -8,7 +8,7 @@ A range collection is an aggregate of these ranges: [1, 5), [10, 11), [100, 201)
 
 ## Implementaion notes
 
-I wrote code in Node.JS compatible syntax (require instead of import, and so on). There are 2 version of 'Range Collection' class:
+I wrote code in Node.JS compatible syntax (require instead of import, and so on). There are 2 versions of 'Range Collection' class:
 
 #### RangeCollectionOld.js
 It was a first version with array storages for Include and Exclude ranges separately. There is *getFlatRanges()* method to build current Ranges state on a request.
