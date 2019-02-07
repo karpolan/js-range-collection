@@ -64,6 +64,20 @@ describe('RangeFlatCollection Tests', () => {
 		expect(rc.print()).toEqual('[0, 9999)');
 	})
 
+	it('removes huge range [-10000, 10000]', () => {
+		rc.remove([-10000, 10000]);
+		expect(rc.print()).toEqual('');
+	})
+
+	it('adds minus to plus range [-200, 50)', () => {
+		rc.add([-200, 50]);
+		expect(rc.print()).toEqual('[-200, 50)');
+	})
+
+	it('adds concat range [50, 200)', () => {
+		rc.add([50, 200]);
+		expect(rc.print()).toEqual('[-200, 200)');
+	})
 
 },
 )

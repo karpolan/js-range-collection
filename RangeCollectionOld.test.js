@@ -6,19 +6,16 @@ describe('RangeCollection Tests', () => {
 
 	it('adds range [1, 5]', () => {
 		rc.add([1, 5]);
-		//expect(rc.rangesInclude).toEqual([[1, 5]]);
 		expect(rc.print()).toEqual('[1, 5)');
 	})
 
 	it('adds range [10, 20]', () => {
 		rc.add([10, 20]);
-		//expect(rc.rangesInclude).toEqual([[1, 5], [10, 20]])
 		expect(rc.print()).toEqual('[1, 5) [10, 20)');
 	})
 
 	it('adds range [20, 20]', () => {
 		rc.add([20, 20]);
-		//expect(rc.rangesInclude).toEqual([1, 5], [10, 20], [20, 20])
 		expect(rc.print()).toEqual('[1, 5) [10, 20)');
 	})
 
@@ -67,6 +64,20 @@ describe('RangeCollection Tests', () => {
 		expect(rc.print()).toEqual('[0, 9999)');
 	})
 
+	it('removes huge range [-10000, 10000]', () => {
+		rc.remove([-10000, 10000]);
+		expect(rc.print()).toEqual('');
+	})
+
+	it('adds minus to plus range [-200, 50)', () => {
+		rc.add([-200, 50]);
+		expect(rc.print()).toEqual('[-200, 50)');
+	})
+
+	it('adds concat range [50, 200)', () => {
+		rc.add([50, 200]);
+		expect(rc.print()).toEqual('[-200, 200)');
+	})
 
 },
 )

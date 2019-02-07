@@ -29,9 +29,11 @@ class RangeCollection {
    * @return {Array<number>} - [a1, a2, b1, b2...] "Combined" or "Filtred" ranges as flat array.
    */
   getFlatRanges() {
+    if (this.rangesInclude.length < 1) return []; 
+
     const combined = [], excluded = [], filtred = [];
     let first = undefined, last = undefined;
-
+  
     // Get flat array of "Combined" ranges
     this.rangesInclude.sort((a, b) => a[0] - b[0]); // Sort ASC
     first = this.rangesInclude[0][0];
@@ -41,7 +43,8 @@ class RangeCollection {
       const b = this.rangesInclude[i + 1];
       if (last < b[0]) {
         // No intersection
-        combined.push(first, last); // Save previous range
+        if (first != last)
+          combined.push(first, last); // Save previous range
         first = b[0];
         last = b[1];
       } else {
@@ -52,7 +55,8 @@ class RangeCollection {
         last = Math.max(b[1], last);
       }
     } // for
-    combined.push(first, last); // Save latest range
+    if (first != last)
+      combined.push(first, last); // Save latest range
 
     // If there are no "Excluded" ranges return "Combined" ranges as is
     if (this.rangesExclude.length < 1) return combined;
@@ -66,18 +70,19 @@ class RangeCollection {
       const b = this.rangesExclude[i + 1];
       if (last < b[0]) {
         // No intersection
-        excluded.push(first, last); // Save previous range
+        if (first != last)
+          excluded.push(first, last); // Save previous range
         first = b[0];
         last = b[1];
       } else {
         // Ranges overlap
         if (first === undefined) first = a[0];
         if (last === undefined) last = a[1];
-        last = Math.max(a[1], last);
-        last = Math.max(b[1], last);
+        last = Math.max(a[1], Math.max(b[1], last));
       }
     } // for
-    excluded.push(first, last); // Save latest range
+    if (first != last)
+      excluded.push(first, last); // Save latest range
 
     // Filter every "Combined" range (a) by all "Excluded" ranges (b)  
     for (let i = 0; i < combined.length - 1; i += 2) {
@@ -86,32 +91,36 @@ class RangeCollection {
       for (let j = 0; j < excluded.length - 1; j += 2) {
         const b = [excluded[j], excluded[j + 1]];
 
-        if ((a[1] < b[0]) || (a[0] > b[1])) {
+        if ((a[1] < b[0]) || (b[1] < a[0])) {
           // No intersection - Do nothing
-        } else
-          if ((b[0] <= a[0]) && (a[1] <= b[1])) {
-            // Range A inside Range B
-            a[1] = a[0];
-            break; // The range is "eliminated"
-          } else
-            if ((a[0] < b[0]) && (b[1] < a[1])) {
-              // Range is splited
-              utils.addUniqueRange(filtred, [a[0], b[0]]); // Save "left" part 
-              a[0] = b[1]; // Continue with "right" part only
-            } else
-              if ((b[0] <= a[1]) && (a[1] <= b[1])) {
-                // Cut at the end
-                a[1] = b[0];
-              } else
-                if ((b[0] <= a[0]) && (a[0] <= b[1])) {
-                  // Cut at the begin
-                  a[0] = b[1];
-                }
+        }
+        else if ((b[0] <= a[0]) && (a[1] <= b[1])) {
+          // Range A inside Range B
+          a[1] = a[0];
+          break; // The range is "eliminated"
+        }
+        else if ((a[0] < b[0]) && (b[1] < a[1])) {
+          // Range is splited
+          utils.addUniqueRange(filtred, [a[0], b[0]]); // Save "left" part 
+          a[0] = b[1]; // Continue with "right" part only
+        }
+        else if ((b[0] <= a[1]) && (a[1] <= b[1])) {
+          // Cut at the end
+          a[1] = b[0];
+        }
+        else if ((b[0] <= a[0]) && (a[0] <= b[1])) {
+          // Cut at the begin
+          a[0] = b[1];
+        }
       } // for j
 
       if (a[0] !== a[1])
         utils.addUniqueRange(filtred, [a[0], a[1]]);  // Save the "filterd" part
     } // for i   
+
+    // console.log('combined: ', combined);
+    // console.log('excluded: ', excluded);
+    // console.log('filtered: ', filtred);
 
     return filtred;
   } // getFlatRanges()
@@ -129,24 +138,27 @@ class RangeCollection {
       if ((a[1] < b[0]) || (b[1] < a[0])) {
         // No intersection
         return [...acc, b];
-      } else
-        if ((b[0] <= a[0]) && (a[1] <= b[1])) {
-          // Range A inside Range B - split
-          return [...acc, utils.rangeSplit(a, b)];
-        } else
-          if ((a[0] < b[0]) && (b[1] < a[1])) {
-            // Range B inside A - delete
-            return acc;
-          } else
-            if ((b[0] <= a[0]) && (b[1] <= a[1])) {
-              // Cut at the end
-              return [...acc, [b[0], a[0]]];
-            } else
-              if ((a[0] <= b[0]) && (a[1] <= b[1])) {
-                // Cut at the begin
-                return [...acc, [a[1], b[1]]];
-              } else
-                return [...acc, b]; // just continue
+      }
+      else if ((b[0] <= a[0]) && (a[1] <= b[1])) {
+        // Range A inside Range B - split
+        return [...acc,
+        [b[0], a[0]], // "left" part 
+        [a[1], b[1]]  // "right" part
+        ];
+      }
+      else if ((a[0] < b[0]) && (b[1] < a[1])) {
+        // Range B inside A - delete
+        return acc;
+      }
+      else if ((b[0] <= a[0]) && (b[1] <= a[1])) {
+        // Cut at the end
+        return [...acc, [b[0], a[0]]];
+      }
+      else if ((a[0] <= b[0]) && (a[1] <= b[1])) {
+        // Cut at the begin
+        return [...acc, [a[1], b[1]]];
+      }
+      else return [...acc, b]; // just continue
     }, []);
   } // removeOvelapedRanges()
 
@@ -166,6 +178,7 @@ class RangeCollection {
    */
   remove(range) {
     this.rangesExclude.push(range);
+    //this.rangesInclude = this.removeOvelapedRanges(this.rangesInclude, range);
     return this.rangesExclude; // Could be useful
   }
 
@@ -238,7 +251,24 @@ const runExample = () => {
 
   rc.add([0, 100]);
   rc.print();
-  // Should display: [0, 100);
+  // Should display: [0, 100)
+
+  rc.add([0, 9999]);
+  rc.print()
+  // Should display: [0, 9999)
+  
+  rc.remove([-10000, 10000]);
+  rc.print();
+  // Should display:
+  
+  rc.add([-200, 50]);
+  rc.print();
+  // Should display: [-200, 50)
+  
+  rc.add([50, 200]);
+  rc.print();
+  // Should display: [-200, 200)
+  
 }
 runExample();
 
