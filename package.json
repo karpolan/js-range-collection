@@ -1,6 +1,6 @@
 {
   "name": "js-range-collection",
-  "version": "0.5.17",
+  "version": "0.5.19",
   "description": "Collection of numeric ranges",
   "keywords": [
     "collection",
@@ -18,7 +18,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "jest": "^24.0.0"
+    "jest": "^24.8.0"
   },
   "scripts": {
     "start": "node RangeCollection.js",
