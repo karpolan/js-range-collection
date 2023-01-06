@@ -18,7 +18,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "jest": "^24.9.0"
+    "jest": "latest"
   },
   "scripts": {
     "start": "node RangeCollection.js",
